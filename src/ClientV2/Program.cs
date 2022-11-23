@@ -1,7 +1,7 @@
-﻿using H.Pipes;
+﻿using Common;
+using H.Pipes;
 using IPCShared;
 using IPCShared.BaseStuff;
-using Common;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Net;
@@ -27,8 +27,66 @@ namespace ClientV2
                     return await InvokeStopClient(r);
                 case GetIdAndVersionRequestX r:
                     return await InvokeGetIdAndVersionRequest(r);
+                case AcquireLeaseRequest r:
+                    return await InvokeAcquireLeaseRequest(r);
+                case ReadLeaseIDRequest r:
+                    return await InvokeReadLeaseIDRequest(r);
                 default:
                     throw new ApplicationException($"Unexpected request message type: {requestMessage.GetType().FullName}");
+            }
+        }
+
+        async Task<ReadLeaseIDResponse> InvokeReadLeaseIDRequest(ReadLeaseIDRequest req)
+        {
+            if (_clusterClient == null)
+            {
+                return new ReadLeaseIDResponse() { Error = "Client is not active" };
+            }
+
+            try
+            {
+                var dummyLease = _clusterClient.GetGrain<IDummyLease>(req.GrainId);
+                var rval = await dummyLease.ReadLeaseID();
+                return new ReadLeaseIDResponse()
+                {
+                    Success = true,
+                    LeaseID = rval
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ReadLeaseIDResponse()
+                {
+                    Success = false,
+                    Error = ex.ToString()
+                };
+            }
+        }
+
+        async Task<AcquireLeaseResponse> InvokeAcquireLeaseRequest(AcquireLeaseRequest req)
+        {
+            if (_clusterClient == null)
+            {
+                return new AcquireLeaseResponse() { Error = "Client is not active" };
+            }
+
+            try
+            {
+                var dummyLease = _clusterClient.GetGrain<IDummyLease>(req.GrainId);
+                var rval = await dummyLease.DummyAcquire();
+                return new AcquireLeaseResponse()
+                {
+                    Success = true,
+                    LeaseID = rval
+                };
+            }
+            catch (Exception ex)
+            {
+                return new AcquireLeaseResponse()
+                {
+                    Success = false,
+                    Error = ex.ToString()
+                };
             }
         }
 
