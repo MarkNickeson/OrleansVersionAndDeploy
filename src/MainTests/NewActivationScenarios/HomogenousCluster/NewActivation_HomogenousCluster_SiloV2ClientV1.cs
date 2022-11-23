@@ -2,41 +2,40 @@ using IPCShared;
 using IPCShared.BaseStuff;
 using MainTests.Fixtures;
 
-namespace MainTests
+namespace MainTests.ActivationScenarios.HomogenousCluster
 {
     [Collection("TestProcesses")]
-    public class SiloV2ClientV1 : IAsyncLifetime
+    public class NewActivation_HomogenousCluster_SiloV2ClientV1 : IAsyncLifetime
     {
         readonly TestProcessesFixture _testProcesses;
         ResponseMessageBase? _startSiloV2;
         ResponseMessageBase? _startClientV1;
 
-        public SiloV2ClientV1(TestProcessesFixture testProcesses)
+        public NewActivation_HomogenousCluster_SiloV2ClientV1(TestProcessesFixture testProcesses)
         {
             _testProcesses = testProcesses;
         }
 
         public async Task InitializeAsync()
-        { 
+        {
             // start silov2
             _startSiloV2 = await _testProcesses.SiloV2Command.ExecuteAsync<StartSiloRequest, ResponseMessageBase>(new StartSiloRequest()
             {
-                RendezvousPort = 11110,
-                GatewayPort = 30000,
-                SiloPort = 11110,
+                GatewayPort = ConfigConstants.SiloV2_GatewayPort,
+                SiloPort = ConfigConstants.SiloV2_SiloPort,
                 VersionCompatibility = VersionCompatibilitiy.BackwardCompatible,
                 VersionSelector = VersionSelector.LatestVersion
             });
-           
+
             // start client v1
             _startClientV1 = await _testProcesses.ClientV1Command.ExecuteAsync<StartClientRequest, ResponseMessageBase>(new StartClientRequest()
             {
-                GatewayPort = 30000
-            });            
+                GatewayPorts = new int[] { ConfigConstants.SiloV2_GatewayPort }
+            });
         }
 
         [Fact]
-        public async Task Activation_LatestVersion_BackwardCompatible_ExpectSuccess()
+        public async Task Test()
         {
             Assert.True(_startSiloV2!.Success);
             Assert.True(_startClientV1!.Success);
@@ -48,6 +47,7 @@ namespace MainTests
             });
 
             Assert.True(getIdAndVersionResponse.Success);
+            Assert.Equal($"GrainKey: TestGrain1, Payload: Invoked by V1 client, Version: V2 Server", getIdAndVersionResponse.ReturnValue);
         }
 
         public async Task DisposeAsync()

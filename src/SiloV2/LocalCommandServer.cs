@@ -44,12 +44,7 @@ namespace SiloV2
 
             siloHost = await Host.CreateDefaultBuilder()
               .UseOrleans(builder => builder
-                .UseDevelopmentClustering(new IPEndPoint(IPAddress.Loopback, req.RendezvousPort))
-                .Configure<EndpointOptions>(o => {
-                    o.AdvertisedIPAddress = IPAddress.Loopback;
-                    o.GatewayPort = req.GatewayPort;
-                    o.SiloPort = req.SiloPort;
-                })
+                .UseLocalhostClustering(req.SiloPort, req.GatewayPort, req.PrimarySiloPort == null ? null : new IPEndPoint(IPAddress.Loopback, req.PrimarySiloPort.Value))
                 .Configure<GrainVersioningOptions>(o => {
                     switch(req.VersionSelector)
                     {

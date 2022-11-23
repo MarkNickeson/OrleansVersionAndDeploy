@@ -73,9 +73,9 @@ namespace ClientV2
                 }
 
                 _clientHost = await Host.CreateDefaultBuilder()
-                  .UseOrleansClient(builder => builder
-                    .UseStaticClustering(new IPEndPoint(IPAddress.Loopback, req.GatewayPort)))
-                  .StartAsync();
+                    .UseOrleansClient(builder => builder
+                        .UseLocalhostClustering(req.GatewayPorts))
+                    .StartAsync();
 
                 _clusterClient = _clientHost.Services.GetRequiredService<IClusterClient>();
 
