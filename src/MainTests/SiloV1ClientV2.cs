@@ -35,7 +35,6 @@ namespace MainTests
             });
         }
 
-
         [Fact]
         public async Task Activation_LatestVersion_BackwardCompatible_ExpectFail()
         {

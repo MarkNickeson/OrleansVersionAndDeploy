@@ -1,7 +1,7 @@
 ﻿using H.Pipes;
 using IPCShared;
 using IPCShared.BaseStuff;
-using MatchingInterfaceNamespace;
+using Common;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Net;

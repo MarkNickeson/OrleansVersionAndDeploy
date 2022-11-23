@@ -1,6 +1,6 @@
 ﻿using Orleans.CodeGeneration;
 
-namespace MatchingInterfaceNamespace
+namespace Common
 {
     [Version(2)]
     public interface IFoo : IGrainWithStringKey
