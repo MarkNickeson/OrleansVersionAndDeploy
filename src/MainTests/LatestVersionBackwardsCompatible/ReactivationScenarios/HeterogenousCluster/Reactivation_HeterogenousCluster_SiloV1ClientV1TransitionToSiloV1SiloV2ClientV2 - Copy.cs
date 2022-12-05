@@ -2,10 +2,10 @@ using IPCShared;
 using IPCShared.BaseStuff;
 using MainTests.Fixtures;
 
-namespace MainTests.ReactivationScenarios.MementoStateTransition
+namespace MainTests.LatestVersionBackwardsCompatible.ReactivationScenarios.HeterogenousCluster
 {
     [Collection("TestProcesses")]
-    public class Reactivation_MementoStateTransition_SiloV1ClientV1TransitionToSiloV1SiloV2ClientV2 : IAsyncLifetime
+    public class Reactivation_HeterogenousCluster_SiloV1ClientV1TransitionToSiloV1SiloV2ClientV2 : IAsyncLifetime
     {
         readonly TestProcessesFixture _testProcesses;
         ResponseMessageBase? _startSiloV1;
@@ -13,7 +13,7 @@ namespace MainTests.ReactivationScenarios.MementoStateTransition
         ResponseMessageBase? _startClientV1;
         ResponseMessageBase? _startClientV2;
 
-        public Reactivation_MementoStateTransition_SiloV1ClientV1TransitionToSiloV1SiloV2ClientV2(TestProcessesFixture testProcesses)
+        public Reactivation_HeterogenousCluster_SiloV1ClientV1TransitionToSiloV1SiloV2ClientV2(TestProcessesFixture testProcesses)
         {
             _testProcesses = testProcesses;
         }
@@ -43,10 +43,14 @@ namespace MainTests.ReactivationScenarios.MementoStateTransition
             Assert.True(_startSiloV1!.Success);
             Assert.True(_startClientV1!.Success);
 
-            var acquireLeaseResponse = await _testProcesses.ClientV1Command.ExecuteAsync<AcquireLeaseRequest, AcquireLeaseResponse>(new AcquireLeaseRequest()
+            var getIdAndVersionResponse = await _testProcesses.ClientV1Command.ExecuteAsync<GetIdAndVersionRequestX, GetIdAndVersionResponse>(new GetIdAndVersionRequestX()
             {
-                GrainId = "TestLease1",
+                GrainId = "TestGrain1",
+                InboundPayload = "Invoked by V1 client"
             });
+
+            Assert.True(getIdAndVersionResponse.Success);
+            Assert.Equal($"GrainKey: TestGrain1, Payload: Invoked by V1 client, Version: V1 Server", getIdAndVersionResponse.ReturnValue);
 
             // start silov2
             _startSiloV2 = await _testProcesses.SiloV2Command.ExecuteAsync<StartSiloRequest, ResponseMessageBase>(new StartSiloRequest()
@@ -64,16 +68,15 @@ namespace MainTests.ReactivationScenarios.MementoStateTransition
                 GatewayPorts = new int[] { ConfigConstants.SiloV1_GatewayPort, ConfigConstants.SiloV2_GatewayPort }
             });
 
-            // attempt to read the lease id via client 2
-
-            var readLeaseResponse = await _testProcesses.ClientV2Command.ExecuteAsync<ReadLeaseIDRequest, ReadLeaseIDResponse>(new ReadLeaseIDRequest()
+            var getIdAndVersionResponse2 = await _testProcesses.ClientV2Command.ExecuteAsync<GetIdAndVersionRequestX, GetIdAndVersionResponse>(new GetIdAndVersionRequestX()
             {
-                GrainId = "TestLease1", // same grain key
+                GrainId = "TestGrain1", // same grain key
+                InboundPayload = "Invoked by V2 client"
             });
 
-            Assert.True(readLeaseResponse.Success);
-            Assert.NotNull(readLeaseResponse.LeaseID);
-            Assert.Equal(acquireLeaseResponse.LeaseID, readLeaseResponse.LeaseID);
+            Assert.True(getIdAndVersionResponse2.Success);
+            Assert.Equal($"GrainKey: TestGrain1, Payload: Invoked by V2 client, Version: V2 Server", getIdAndVersionResponse2.ReturnValue);
+
         }
 
         public async Task DisposeAsync()

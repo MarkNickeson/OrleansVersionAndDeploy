@@ -2,7 +2,7 @@ using IPCShared;
 using IPCShared.BaseStuff;
 using MainTests.Fixtures;
 
-namespace MainTests.ReactivationScenarios.HeterogenousCluster
+namespace MainTests.LatestVersionBackwardsCompatible.ExistingActivationScenarios.HeterogenousCluster
 {
     [Collection("TestProcesses")]
     public class ExistingActivation_HeterogenousCluster_SiloV1SiloV2ClientV1ClientV2_ClientV1BackwardsCompatible : IAsyncLifetime
@@ -70,7 +70,7 @@ namespace MainTests.ReactivationScenarios.HeterogenousCluster
 
             Assert.True(getIdAndVersionResponse.Success);
             Assert.Equal($"GrainKey: TestGrain1, Payload: Invoked by V2 client, Version: V2 Server", getIdAndVersionResponse.ReturnValue);
-            
+
             // use client V1 to access grain via backwards compatibility
             var getIdAndVersionResponse2 = await _testProcesses.ClientV1Command.ExecuteAsync<GetIdAndVersionRequestX, GetIdAndVersionResponse>(new GetIdAndVersionRequestX()
             {
@@ -80,7 +80,7 @@ namespace MainTests.ReactivationScenarios.HeterogenousCluster
 
             Assert.True(getIdAndVersionResponse2.Success);
             Assert.Equal($"GrainKey: TestGrain1, Payload: Invoked by V1 client, Version: V2 Server", getIdAndVersionResponse2.ReturnValue);
-        }      
+        }
 
         public async Task DisposeAsync()
         {
@@ -88,7 +88,7 @@ namespace MainTests.ReactivationScenarios.HeterogenousCluster
             var stopClientV1 = await _testProcesses.ClientV1Command.ExecuteAsync<StopClientRequest, ResponseMessageBase>(new StopClientRequest() { });
             var stopClientV2 = await _testProcesses.ClientV2Command.ExecuteAsync<StopClientRequest, ResponseMessageBase>(new StopClientRequest() { });
             var stopSiloV2 = await _testProcesses.SiloV2Command.ExecuteAsync<StopSiloRequest, ResponseMessageBase>(new StopSiloRequest() { });
-            var stopSiloV1 = await _testProcesses.SiloV1Command.ExecuteAsync<StopSiloRequest, ResponseMessageBase>(new StopSiloRequest() { });            
+            var stopSiloV1 = await _testProcesses.SiloV1Command.ExecuteAsync<StopSiloRequest, ResponseMessageBase>(new StopSiloRequest() { });
         }
     }
 }

@@ -2,7 +2,7 @@ using IPCShared;
 using IPCShared.BaseStuff;
 using MainTests.Fixtures;
 
-namespace MainTests.ActivationScenarios.HomogenousCluster
+namespace MainTests.LatestVersionBackwardsCompatible.NewActivationScenarios.HomogenousCluster
 {
     [Collection("TestProcesses")]
     public class NewActivation_HomogenousCluster_SiloV1ClientV2 : IAsyncLifetime

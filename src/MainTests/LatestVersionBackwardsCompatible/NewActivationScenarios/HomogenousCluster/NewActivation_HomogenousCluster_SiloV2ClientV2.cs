@@ -2,39 +2,27 @@ using IPCShared;
 using IPCShared.BaseStuff;
 using MainTests.Fixtures;
 
-namespace MainTests.ActivationScenarios.HeterogenousCluster
+namespace MainTests.LatestVersionBackwardsCompatible.NewActivationScenarios.HomogenousCluster
 {
     [Collection("TestProcesses")]
-    public class NewActivation_HeterogenousCluster_SiloV1SiloV2ClientV2 : IAsyncLifetime
+    public class NewActivation_HomogenousCluster_SiloV2ClientV2 : IAsyncLifetime
     {
         readonly TestProcessesFixture _testProcesses;
-        ResponseMessageBase? _startSiloV1;
         ResponseMessageBase? _startSiloV2;
         ResponseMessageBase? _startClientV2;
 
-        public NewActivation_HeterogenousCluster_SiloV1SiloV2ClientV2(TestProcessesFixture testProcesses)
+        public NewActivation_HomogenousCluster_SiloV2ClientV2(TestProcessesFixture testProcesses)
         {
             _testProcesses = testProcesses;
         }
 
         public async Task InitializeAsync()
         {
-            // start silov1
-            _startSiloV1 = await _testProcesses.SiloV1Command.ExecuteAsync<StartSiloRequest, ResponseMessageBase>(new StartSiloRequest()
-            {
-                GatewayPort = ConfigConstants.SiloV1_GatewayPort,
-                SiloPort = ConfigConstants.SiloV1_SiloPort,
-                PrimarySiloPort = null, // null means this is primary
-                VersionCompatibility = VersionCompatibilitiy.BackwardCompatible,
-                VersionSelector = VersionSelector.LatestVersion
-            });
-
             // start silov2
             _startSiloV2 = await _testProcesses.SiloV2Command.ExecuteAsync<StartSiloRequest, ResponseMessageBase>(new StartSiloRequest()
             {
                 GatewayPort = ConfigConstants.SiloV2_GatewayPort,
                 SiloPort = ConfigConstants.SiloV2_SiloPort,
-                PrimarySiloPort = ConfigConstants.SiloV1_SiloPort, // points to primary
                 VersionCompatibility = VersionCompatibilitiy.BackwardCompatible,
                 VersionSelector = VersionSelector.LatestVersion
             });
@@ -42,14 +30,13 @@ namespace MainTests.ActivationScenarios.HeterogenousCluster
             // start client v2
             _startClientV2 = await _testProcesses.ClientV2Command.ExecuteAsync<StartClientRequest, ResponseMessageBase>(new StartClientRequest()
             {
-                GatewayPorts = new int[] { ConfigConstants.SiloV1_GatewayPort, ConfigConstants.SiloV2_GatewayPort }
+                GatewayPorts = new int[] { ConfigConstants.SiloV2_GatewayPort }
             });
         }
 
         [Fact]
         public async Task Test()
         {
-            Assert.True(_startSiloV1!.Success);
             Assert.True(_startSiloV2!.Success);
             Assert.True(_startClientV2!.Success);
 
@@ -60,15 +47,16 @@ namespace MainTests.ActivationScenarios.HeterogenousCluster
             });
 
             Assert.True(getIdAndVersionResponse.Success);
-            Assert.Equal($"GrainKey: TestGrain1, Payload: Invoked by V2 client, Version: V2 Server", getIdAndVersionResponse.ReturnValue);
-        }      
+            Assert.Equal("GrainKey: TestGrain1, Payload: Invoked by V2 client, Version: V2 Server", getIdAndVersionResponse.ReturnValue);
+        }
 
         public async Task DisposeAsync()
         {
-            // shutdown order matters because primary must be the last to go
             var stopClientV2 = await _testProcesses.ClientV2Command.ExecuteAsync<StopClientRequest, ResponseMessageBase>(new StopClientRequest() { });
+            //Assert.True(stopClientV2.Success);
+
             var stopSiloV2 = await _testProcesses.SiloV2Command.ExecuteAsync<StopSiloRequest, ResponseMessageBase>(new StopSiloRequest() { });
-            var stopSiloV1 = await _testProcesses.SiloV1Command.ExecuteAsync<StopSiloRequest, ResponseMessageBase>(new StopSiloRequest() { });            
+            //Assert.True(stopSiloV2.Success);
         }
     }
 }

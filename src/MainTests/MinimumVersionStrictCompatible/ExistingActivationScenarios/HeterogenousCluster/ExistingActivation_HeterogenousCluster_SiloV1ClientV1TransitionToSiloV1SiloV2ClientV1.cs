@@ -2,7 +2,7 @@ using IPCShared;
 using IPCShared.BaseStuff;
 using MainTests.Fixtures;
 
-namespace MainTests.ReactivationScenarios.HeterogenousCluster
+namespace MainTests.MinimumVersionStrictCompatible.ExistingActivationScenarios.HeterogenousCluster
 {
     [Collection("TestProcesses")]
     public class ExistingActivation_HeterogenousCluster_SiloV1ClientV1TransitionToSiloV1SiloV2ClientV1 : IAsyncLifetime
@@ -25,9 +25,9 @@ namespace MainTests.ReactivationScenarios.HeterogenousCluster
                 GatewayPort = ConfigConstants.SiloV1_GatewayPort,
                 SiloPort = ConfigConstants.SiloV1_SiloPort,
                 PrimarySiloPort = null, // null means this is primary
-                VersionCompatibility = VersionCompatibilitiy.BackwardCompatible,
-                VersionSelector = VersionSelector.LatestVersion
-            });            
+                VersionCompatibility = VersionCompatibilitiy.StrictVersionCompatible,
+                VersionSelector = VersionSelector.MinimumVersion
+            });
 
             // start client v1
             _startClientV1 = await _testProcesses.ClientV1Command.ExecuteAsync<StartClientRequest, ResponseMessageBase>(new StartClientRequest()
@@ -57,9 +57,9 @@ namespace MainTests.ReactivationScenarios.HeterogenousCluster
                 GatewayPort = ConfigConstants.SiloV2_GatewayPort,
                 SiloPort = ConfigConstants.SiloV2_SiloPort,
                 PrimarySiloPort = ConfigConstants.SiloV1_SiloPort, // points to primary
-                VersionCompatibility = VersionCompatibilitiy.BackwardCompatible,
-                VersionSelector = VersionSelector.LatestVersion
-            });            
+                VersionCompatibility = VersionCompatibilitiy.StrictVersionCompatible,
+                VersionSelector = VersionSelector.MinimumVersion
+            });
 
             var getIdAndVersionResponse2 = await _testProcesses.ClientV1Command.ExecuteAsync<GetIdAndVersionRequestX, GetIdAndVersionResponse>(new GetIdAndVersionRequestX()
             {
@@ -70,18 +70,18 @@ namespace MainTests.ReactivationScenarios.HeterogenousCluster
             Assert.True(getIdAndVersionResponse2.Success);
             Assert.Equal($"GrainKey: TestGrain1, Payload: Invoked by V1 client, Version: V1 Server", getIdAndVersionResponse2.ReturnValue);
 
-        }      
+        }
 
         public async Task DisposeAsync()
         {
             // shutdown order matters because primary must be the last to go
-            var stopClientV1 = await _testProcesses.ClientV1Command.ExecuteAsync<StopClientRequest, ResponseMessageBase>(new StopClientRequest() { });            
+            var stopClientV1 = await _testProcesses.ClientV1Command.ExecuteAsync<StopClientRequest, ResponseMessageBase>(new StopClientRequest() { });
 
             if (_startSiloV2 != null && _startSiloV2.Success)
             {
                 var stopSiloV2 = await _testProcesses.SiloV2Command.ExecuteAsync<StopSiloRequest, ResponseMessageBase>(new StopSiloRequest() { });
             }
-            var stopSiloV1 = await _testProcesses.SiloV1Command.ExecuteAsync<StopSiloRequest, ResponseMessageBase>(new StopSiloRequest() { });            
+            var stopSiloV1 = await _testProcesses.SiloV1Command.ExecuteAsync<StopSiloRequest, ResponseMessageBase>(new StopSiloRequest() { });
         }
     }
 }

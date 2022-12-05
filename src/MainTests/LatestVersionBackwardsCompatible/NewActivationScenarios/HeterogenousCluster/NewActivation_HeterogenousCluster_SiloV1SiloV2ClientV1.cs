@@ -2,7 +2,7 @@ using IPCShared;
 using IPCShared.BaseStuff;
 using MainTests.Fixtures;
 
-namespace MainTests.ActivationScenarios.HeterogenousCluster
+namespace MainTests.LatestVersionBackwardsCompatible.NewActivationScenarios.HeterogenousCluster
 {
     [Collection("TestProcesses")]
     public class NewActivation_HeterogenousCluster_SiloV1SiloV2ClientV1 : IAsyncLifetime
@@ -61,14 +61,14 @@ namespace MainTests.ActivationScenarios.HeterogenousCluster
 
             Assert.True(getIdAndVersionResponse.Success);
             Assert.Equal($"GrainKey: TestGrain1, Payload: Invoked by V1 client, Version: V2 Server", getIdAndVersionResponse.ReturnValue);
-        }      
+        }
 
         public async Task DisposeAsync()
         {
             // shutdown order matters because primary must be the last to go
             var stopClientV1 = await _testProcesses.ClientV1Command.ExecuteAsync<StopClientRequest, ResponseMessageBase>(new StopClientRequest() { });
             var stopSiloV2 = await _testProcesses.SiloV2Command.ExecuteAsync<StopSiloRequest, ResponseMessageBase>(new StopSiloRequest() { });
-            var stopSiloV1 = await _testProcesses.SiloV1Command.ExecuteAsync<StopSiloRequest, ResponseMessageBase>(new StopSiloRequest() { });            
+            var stopSiloV1 = await _testProcesses.SiloV1Command.ExecuteAsync<StopSiloRequest, ResponseMessageBase>(new StopSiloRequest() { });
         }
     }
 }
