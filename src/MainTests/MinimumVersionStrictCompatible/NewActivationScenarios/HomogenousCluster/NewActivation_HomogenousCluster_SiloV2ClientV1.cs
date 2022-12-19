@@ -46,8 +46,8 @@ namespace MainTests.MinimumVersionStrictCompatible.NewActivationScenarios.Homoge
                 InboundPayload = "Invoked by V1 client"
             });
 
-            Assert.True(getIdAndVersionResponse.Success);
-            Assert.Equal($"GrainKey: TestGrain1, Payload: Invoked by V1 client, Version: V2 Server", getIdAndVersionResponse.ReturnValue);
+            // expect this to fail because versioning is strict: client V1 asked for V1 and SiloV2 only has V2, so cannot be satisfied
+            Assert.False(getIdAndVersionResponse.Success);
         }
 
         public async Task DisposeAsync()

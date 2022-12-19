@@ -47,30 +47,36 @@ namespace SiloV1
               .UseOrleans(builder => builder
                 .UseLocalhostClustering(req.SiloPort, req.GatewayPort, req.PrimarySiloPort == null ? null : new IPEndPoint(IPAddress.Loopback, req.PrimarySiloPort.Value))
                 .Configure<GrainVersioningOptions>(o => {
-                    switch(req.VersionSelector)
+                    if (req.VersionSelector.HasValue)
                     {
-                        case VersionSelector.AllCompatibleVersions:
-                            o.DefaultVersionSelectorStrategy = nameof(AllCompatibleVersions);
-                            break;
-                        case VersionSelector.LatestVersion:
-                            o.DefaultVersionSelectorStrategy = nameof(LatestVersion);
-                            break;
-                        case VersionSelector.MinimumVersion:
-                            o.DefaultVersionSelectorStrategy = nameof(MinimumVersion);
-                            break;
+                        switch (req.VersionSelector.Value)
+                        {
+                            case VersionSelector.AllCompatibleVersions:
+                                o.DefaultVersionSelectorStrategy = nameof(AllCompatibleVersions);
+                                break;
+                            case VersionSelector.LatestVersion:
+                                o.DefaultVersionSelectorStrategy = nameof(LatestVersion);
+                                break;
+                            case VersionSelector.MinimumVersion:
+                                o.DefaultVersionSelectorStrategy = nameof(MinimumVersion);
+                                break;
+                        }
                     }
 
-                    switch (req.VersionCompatibility)
+                    if (req.VersionCompatibility.HasValue)
                     {
-                        case VersionCompatibilitiy.AllVersionsCompatible:
-                            o.DefaultCompatibilityStrategy = nameof(AllVersionsCompatible);
-                            break;
-                        case VersionCompatibilitiy.BackwardCompatible:
-                            o.DefaultCompatibilityStrategy = nameof(BackwardCompatible);
-                            break;
-                        case VersionCompatibilitiy.StrictVersionCompatible:
-                            o.DefaultCompatibilityStrategy = nameof(StrictVersionCompatible);
-                            break;
+                        switch (req.VersionCompatibility.Value)
+                        {
+                            case VersionCompatibilitiy.AllVersionsCompatible:
+                                o.DefaultCompatibilityStrategy = nameof(AllVersionsCompatible);
+                                break;
+                            case VersionCompatibilitiy.BackwardCompatible:
+                                o.DefaultCompatibilityStrategy = nameof(BackwardCompatible);
+                                break;
+                            case VersionCompatibilitiy.StrictVersionCompatible:
+                                o.DefaultCompatibilityStrategy = nameof(StrictVersionCompatible);
+                                break;
+                        }
                     }
                 })
               ).StartAsync();

@@ -31,8 +31,37 @@ namespace SiloV1Client
                     return await InvokeAcquireLeaseRequest(r);
                 case ReadLeaseIDRequest r:
                     return await InvokeReadLeaseIDRequest(r);
+                case InvokeUnversionedTestRequest r:
+                    return await InvokeUnversionedTestRequest(r);
                 default:
                     throw new ApplicationException($"Unexpected request message type: {requestMessage.GetType().FullName}");
+            }
+        }
+
+        async Task<InvokeUnversionedTestResponse> InvokeUnversionedTestRequest(InvokeUnversionedTestRequest req)
+        {
+            if (_clusterClient == null)
+            {
+                return new InvokeUnversionedTestResponse() { Error = "Client is not active" };
+            }
+
+            try
+            {
+                var grainRef = _clusterClient.GetGrain<IVersionlessGrainTest>(req.GrainId);
+                var rval = await grainRef.GetLabel();
+                return new InvokeUnversionedTestResponse()
+                {
+                    Success = true,
+                    ReturnValue = rval
+                };
+            }
+            catch (Exception ex)
+            {
+                return new InvokeUnversionedTestResponse()
+                {
+                    Success = false,
+                    Error = ex.ToString()
+                };
             }
         }
 

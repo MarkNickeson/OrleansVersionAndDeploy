@@ -1,0 +1,3 @@
+The MainTests project does not have direct dependency on the Client or Server EXEs. Thus, "running the tests" only rebuilds MainTests, NOT the EXEs. 
+
+Therefore, BEFORE running tests you must REBUILD ALL so that all changes to Client and server projects are properly rebuilt.

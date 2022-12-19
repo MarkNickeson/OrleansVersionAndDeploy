@@ -15,8 +15,8 @@ namespace IPCShared
         
         public int SiloPort { get; set; } // internode connections
 
-        public VersionCompatibilitiy VersionCompatibility { get; set; }
-        public VersionSelector VersionSelector { get; set; }
+        public VersionCompatibilitiy? VersionCompatibility { get; set; }
+        public VersionSelector? VersionSelector { get; set; }
     }
 
     public class StopSiloRequest : RequestMessageBase
